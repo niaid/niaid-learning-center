@@ -1,0 +1,70 @@
+name: dlp
+
+monarch_team_id: NEED
+monarch_product_id: NEED
+
+tech_email_addresses: NIAIDOCICBBPIMBCloudAdmins@mail.nih.gov
+mgmt_email_addresses: daniel.mandalou@nih.gov
+fed_owner_email_address: ?
+version: 1
+
+approved_for_prod: true
+
+waivers:
+
+
+docker_build:
+  variables:
+    IMAGE_REPO: nlc
+    REGISTRY_USER: hetzelac
+
+    # IMAGE_REPO: <repo-name> # provide the name of the docker repository you created earlier
+    # REGISTRY_USER: <username> # your username in order to utilize the docker repository
+
+webapp_scan:
+  variables:
+    NS_URL: 'https://nlc.niaidawsqa.net/'
+
+terraform:
+  modules:
+    - web-application
+
+  variables:
+    cpu: 2048
+    memory: 7200
+    container_port: 8888
+    desired_count: 1
+    healthcheck_matcher: "200,301-304"
+    command: /opt/startup_scripts/entrypoint.sh
+    ses_email_enabled: true
+    enable_managed_task_role: "true"
+    alb_idle_timeout: 480
+    stack_waf_acl: no_xss
+    persistent_storage_type: objectivefs
+#   debugging
+#    command: debug 8888
+
+  environments:
+    dev:
+      variables:
+        image: "[[${var.pre_prod_image_base}]]"
+    qa:
+      variables:
+        image: "[[${var.pre_prod_image_base}]]"
+        enable_s3_bucket: "true"
+        s3_bucket_name: "nlc-qa-moodledata"
+        deploy_timeout: "600"
+    prod:
+      variables:
+        image: "[[${var.prod_image_base}]]"
+        enable_s3_bucket: "true"
+        s3_bucket_name: "nlc-prod-moodledata"
+        deploy_timeout: "1200"
+        use_public_ssl_cert: "true"
+        security_group_name: "external_elb"
+        url_to_monitor: "nlc.niaidawsprod.net"
+
+  outputs:
+    - external_fqdn
+
+    
