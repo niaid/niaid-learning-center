@@ -1,0 +1,12 @@
+# Use root/example as user/password credentials
+version: '3.1'
+
+services:
+  nlc_mariadb:
+    image: mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: localDev
+  nlc-moodle: 
+    build: .
+    ports:
+      - 8889:8888
